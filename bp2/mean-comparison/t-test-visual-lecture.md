@@ -1,5 +1,5 @@
 # 📊 [Lecture Note] t-분포 및 t-검정(t-test)의 수리적 이해와 시각화
-**Author: 김태경 교수 (경희대학교 정경대학 빅데이터응용학과)**
+**Author: 김태경 교수 (경희대학교 경영대학 빅데이터응용학과)**
 
 ---
 
@@ -131,3 +131,65 @@ ggplot(df, aes(x = value, fill = group)) +
     *   **1번 대안**: 통계 결과 앞 음수 표시(-)의 등장은 단편적으로 앞선 타겟 데이터 변인의 평균이 비교 대상의 평균 수치보다 단순히 수학적으로 적었다는 단방향 크기를 표시할 뿐 제반 설계 불합리를 입증하지는 않습니다.
     *   **2번 대안**: 분포 통계량의 절댓값 단위가 대규모로 확장될수록 되려 t-분포 면적의 극 양측 말단부(기각역) 깊숙이 안착하게 되어 대립 가설 옹호의 논조가 전적으로 더 강화됩니다.
     *   **4번 대안**: 연구 집단 내 분산 단위의 상관적 비율이나 그 자체의 척도를 재차 검토하기 위해서는 본 t-통계치 기반이 아니라 분산 편제율을 확인하는 F-검정(이원 분산분석 등)에 그 수학적 기초를 두어야 합니다.
+
+---
+
+## 5. 실전 사례 연구 (Case Study): 가설 검정 및 분석 리포트
+
+본 섹션에서는 두 독립 표본 모집단에서 수집된 실제(가상) 데이터 셋을 바탕으로, 데이터의 기본 가정(정규성, 등분산성)을 검증하고 최적의 모델을 선택하여 결론을 도출하는 일련의 학문적 분석 절차(Pipeline)를 실증합니다.
+
+### 📊 Case Study 1: 등분산이 가정된 정규 분포 집단비교 (Student's t-test)
+*   **연구 주제**: 새로운 교수법(혁신형)이 기존 교수법(전통형) 대비 학생들의 평균 학업 성취도(점수)를 유의미하게 향상시키는가? 
+
+#### Step 1: 기본 가정 검증 (Normality & Homogeneity of Variance)
+데이터 분석의 대척점은 올바른 모형을 채택하는 데 있습니다. 사전에 두 집단의 데이터가 모두 정규성을 따르는지 **Shapiro-Wilk Test**를 통해 검증($p = 0.32 > 0.05$)하였으며, 양쪽 집단 모두 정규성을 만족함을 확인하였습니다. 이어서 두 집단의 분산이 동일한지 평가하기 위해 **F-검정(var.test)**을 수행합니다.
+```r
+> var.test(score ~ method, data = edu_data)
+# F test to compare two variances
+# F = 1.052, num df = 29, denom df = 29, p-value = 0.8931
+# alternative hypothesis: true ratio of variances is not equal to 1
+```
+> **[평가 논평]**: F-통계량의 p-value가 0.8931로 산출되어 유의수준 0.05 기각역을 상회합니다. 따라서 두 집단 간 분산이 통계적으로 상이하다는 대립가설을 기각하며, **등분산성(Equal Variance)이 성립**한다고 채택합니다.
+
+#### Step 2: 본 검정 수행 (Student's t-test) 및 시각적 대비 (Boxplot)
+등분산성이 입증되었으므로, 보정 분산합을 사용하는 기본 t-검정(`var.equal = TRUE`)을 구동합니다.
+```r
+> t.test(score ~ method, data = edu_data, var.equal = TRUE)
+# Two Sample t-test
+# t = -2.854, df = 58, p-value = 0.0059
+# alternative hypothesis: true difference in means is not equal to 0
+```
+![Case 1 Boxplot: Teaching Method vs Score](case1_boxplot.png)
+> **[평가 논평]**: 측면에 첨부된 상자수염그림(Boxplot)을 살펴보면 혁신형 그룹(Innovation)의 중앙값 및 1~3사분위 박스 전체가 상향 이동해 있습니다. 자유도 58($n=60$) 환경에서 산출된 t-값이 -2.854이며, 기각확률 p-value가 0.0059로 극히 드문 희소성을 띱니다. 우연적 요소만으로는 이 수준의 평균 격차가 발생할 확률이 0.59%에 그치므로, 교수법에 따른 유의미한 평균 변화가 존재함을 보장합니다.
+
+#### Step 3: 학술적 결과 보고 (APA Style Report)
+> "혁신형 교수법 그룹($M = 78.5, SD = 8.2$)과 전통형 교수법 그룹($M = 72.3, SD = 8.4$) 간의 학업 성취도 평균 차이를 검증하기 위해 독립표본 t-검정을 실시한 결과, 두 집단 간 평균 차이는 통계적으로 유의미하게 나타났다 ($t(58) = 2.85, p = .006$). 따라서 새로운 교수법은 학생들의 성취도 향상에 긍정적인 효과를 지니고 있음이 실증되었다."
+
+---
+
+### 📊 Case Study 2: 이분산성이 존재하는 집단비교 (Welch's t-test)
+*   **연구 주제**: 스탠다드 멤버십(Standard) 고객과 프리미엄 멤버십(Premium) 고객 간의 월평균 앱 체류 시간은 유의미한 차이가 존재하는가?
+
+#### Step 1: 기본 가정 검증 (Normality & Homogeneity of Variance)
+사전 검정 결과 두 집단의 데이터 역시 정규성을 충족($p > .05$)하였습니다. 이어 분산의 동질성을 검증합니다.
+```r
+> var.test(time ~ membership, data = customer_data)
+# F test to compare two variances
+# F = 3.65, num df = 45, denom df = 52, p-value = 0.00012
+# alternative hypothesis: true ratio of variances is not equal to 1
+```
+> **[평가 논평]**: F-통계량의 p-value가 0.00012로 도출되어 임계치 0.05 이하로 산출되었습니다. 이는 프리미엄 고객 행동 스펙트럼(분산)이 스탠다드 고객에 비해 통계학적으로 유의하게 넓음(이분산성, Heteroscedasticity)을 증명합니다. 따라서 등분산 가정이 최종 기각됩니다.
+
+#### Step 2: 본 검정 수행 (Welch's t-test) 및 시각적 대비 (Boxplot)
+이분산 상황에서는 기존의 t-분포식 자유도를 패널티화하여 보정하는 **Welch's correction**(`var.equal = FALSE`)을 필히 적용해야 1종 오류의 폭발적 확산을 차단할 수 있습니다.
+```r
+> t.test(time ~ membership, data = customer_data, var.equal = FALSE)
+# Welch Two Sample t-test
+# t = -4.12, df = 68.32, p-value = 0.000104
+# alternative hypothesis: true difference in means is not equal to 0
+```
+![Case 2 Boxplot: Membership Level vs Dwell Time](case2_boxplot.png)
+> **[평가 논평]**: 시각화된 Boxplot을 통해 프리미엄 그룹의 박스 길이(IQR)가 스탠다드 그룹 대비 비대칭적으로 넓은 현상(이분산성)을 직관적으로 확인할 수 있습니다. 데이터의 불규칙한 분산을 감안해 Welch 보정이 개입됨에 따라 자유도(df)가 정수 $n-2$가 아닌 68.32와 같은 소수점 단위로 하향 보정되었습니다. 통계량 t가 정규기표로 -4.12에 달해 절대적 규모가 거대하며, p-value 역시 0.0001 대에 진입하여 압도적인 유의성을 확립합니다.
+
+#### Step 3: 학술적 결과 보고 (APA Style Report)
+> "멤버십 유형별 체류 시간의 차이를 규명하기 위해 가설 검정을 수행하였다. 등분산 사전 검정 결과 집단 간 분산이 이질적인 구조라고 판별되어($F(45, 52) = 3.65, p < .001$), 자유도를 선제적으로 보정한 Welch's t-test를 실시하였다. 분석 결과, 프리미엄 멤버십 집단($M = 145.2, SD = 32.5$)의 평균 체류 시간은 스탠다드 멤버십 집단($M = 115.8, SD = 17.0$)에 비해 통계적으로 유의하게 높았다 ($t(68.32) = 4.12, p < .001$). 이는 프리미엄 서비스 모델의 제공이 유저 잔존율(Retention) 지표를 상향 견인하는 유효한 매개체임을 통계학적으로 입증한다."
