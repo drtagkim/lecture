@@ -150,6 +150,7 @@ ggplot(df, aes(x = value, fill = group)) +
 본 섹션에서는 두 독립 표본 모집단에서 수집된 실제(가상) 데이터 셋을 바탕으로, 데이터의 기본 가정(정규성, 등분산성)을 검증하고 최적의 모델을 선택하여 결론을 도출하는 일련의 학문적 분석 절차(Pipeline)를 실증합니다.
 
 ###  Case Study 1: 등분산이 가정된 정규 분포 집단비교 (Student's t-test)
+*(실습용 데이터셋 다운로드: [edu_data.csv](edu_data.csv))*
 *   **연구 주제**: 새로운 교수법(혁신형)이 기존 교수법(전통형) 대비 학생들의 평균 학업 성취도(점수)를 유의미하게 향상시키는가? 
 
 #### Step 1: 기본 가정 검증 (Normality & Homogeneity of Variance)
@@ -191,6 +192,7 @@ ggplot(df, aes(x = value, fill = group)) +
 ---
 
 ###  Case Study 2: 이분산성이 존재하는 집단비교 (Welch's t-test)
+*(실습용 데이터셋 다운로드: [customer_data.csv](customer_data.csv))*
 *   **연구 주제**: 스탠다드 멤버십(Standard) 고객과 프리미엄 멤버십(Premium) 고객 간의 월평균 앱 체류 시간은 유의미한 차이가 존재하는가?
 
 #### Step 1: 기본 가정 검증 (Normality & Homogeneity of Variance)
