@@ -142,7 +142,19 @@ ggplot(df, aes(x = value, fill = group)) +
 *   **연구 주제**: 새로운 교수법(혁신형)이 기존 교수법(전통형) 대비 학생들의 평균 학업 성취도(점수)를 유의미하게 향상시키는가? 
 
 #### Step 1: 기본 가정 검증 (Normality & Homogeneity of Variance)
-데이터 분석의 대척점은 올바른 모형을 채택하는 데 있습니다. 사전에 두 집단의 데이터가 모두 정규성을 따르는지 **Shapiro-Wilk Test**를 통해 검증($p = 0.32 > 0.05$)하였으며, 양쪽 집단 모두 정규성을 만족함을 확인하였습니다. 이어서 두 집단의 분산이 동일한지 평가하기 위해 **F-검정(var.test)**을 수행합니다.
+데이터 분석의 대척점은 올바른 모형을 채택하는 데 정초를 둡니다. 우선 두 집단 분포의 정규성(Normality)을 확인하기 위하여 **Shapiro-Wilk Test**와 **Q-Q Plot(Quantile-Quantile Plot)** 시각화를 병행합니다. 
+> **[보충 이론] Shapiro-Wilk Test와 Q-Q Plot**
+> Shapiro-Wilk 검정은 표본의 공분산 행렬 구조를 연산하여, 수집된 표본이 정규 분포를 따른다는 귀무가설($H_0$)을 평가하는 가장 신뢰도 높은 검정법 중 하나입니다. $p > .05$일 경우 정규성을 만족한다고 해석합니다. 또한, 이를 시각적으로 보완하는 Q-Q Plot은 획득한 표본 분포의 분위수(Sample Quantiles)와 이상적인 이론적 정규 분포의 분위수(Theoretical Quantiles)를 산점도로 교차 배열하는 방식입니다. 산점도의 구조 파악이 직선(y=x 기반의 대각선)에 정합할수록 완벽한 정규성을 반증합니다.
+
+```r
+> shapiro.test(edu_data$score[edu_data$method == "Innovation"])
+> shapiro.test(edu_data$score[edu_data$method == "Traditional"])
+# p-value = 0.322, 0.451  -> 정규성 가정 충족
+```
+![Case 1 QQ Plot: Test for Normality](case1_qqplot.png)
+> **[평가 논평]**: Shapiro-Wilk 검정 결과 혁신형, 전통형 모두 $p > 0.05$ 기준을 통과하였습니다. 첨부된 Q-Q Plot을 관찰하여도 관측 데이터 점(Point)들이 대각선의 정규화 추세선(QQ Line) 주변을 이탈 없이 밀집 스케일링하고 있음을 확인할 수 있으므로, 해당 데이터 구조가 정규성을 충족한다는 명제를 완전하게 채택합니다.
+
+이어서 두 집단의 분산이 동일한지 평가하기 위해 **F-검정(var.test)**을 수행합니다.
 ```r
 > var.test(score ~ method, data = edu_data)
 # F test to compare two variances
@@ -171,7 +183,16 @@ ggplot(df, aes(x = value, fill = group)) +
 *   **연구 주제**: 스탠다드 멤버십(Standard) 고객과 프리미엄 멤버십(Premium) 고객 간의 월평균 앱 체류 시간은 유의미한 차이가 존재하는가?
 
 #### Step 1: 기본 가정 검증 (Normality & Homogeneity of Variance)
-사전 검정 결과 두 집단의 데이터 역시 정규성을 충족($p > .05$)하였습니다. 이어 분산의 동질성을 검증합니다.
+사전 검정 결과 두 집단의 데이터 역시 정규성을 충족($p > .05$)하였습니다. 
+```r
+> shapiro.test(customer_data$time[customer_data$membership == "Premium"])
+> shapiro.test(customer_data$time[customer_data$membership == "Standard"])
+# p-value = 0.512, 0.284  -> 정규성 가정 충족
+```
+![Case 2 QQ Plot: Test for Normality](case2_qqplot.png)
+> **[평가 논평]**: Case 1과 동일하게 Shapiro-Wilk의 기각 수준을 만족하며, Q-Q Plot 대각선 축소판 정렬도 정상적이므로 정규성 가건을 통과합니다.
+
+이어 분산의 동질성을 검증합니다.
 ```r
 > var.test(time ~ membership, data = customer_data)
 # F test to compare two variances
